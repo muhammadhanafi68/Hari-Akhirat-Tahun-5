@@ -1,697 +1,910 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="ms" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bahan PdP: Beriman dengan Hari Akhirat</title>
+    <title>PdP Interaktif: Beriman dengan Hari Akhirat</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Google Fonts & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Tone.js untuk Kesan Bunyi Synth/SFX yang Stabil -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0fdf4; /* Light emerald background */
+            font-family: 'Fredoka', sans-serif;
+            background-color: #f0fdf4;
+            overflow-x: hidden;
         }
-        .arabic-text {
+
+        .font-arabic {
             font-family: 'Amiri', serif;
-            font-size: 1.75rem;
-            line-height: 2.5rem;
-            direction: rtl;
+            line-height: 2.2;
         }
-        .timeline-line {
+
+        /* Glassmorphism Styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        /* 1. FLIP CARDS ANIMATION */
+        .flip-card {
+            perspective: 1000px;
+            height: 160px;
+        }
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+        .flip-card:hover .flip-card-inner, .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front, .flip-card-back {
             position: absolute;
-            left: 20px;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background-color: #10b981; /* Emerald 500 */
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
         }
-        @media (min-width: 768px) {
-            .timeline-line {
-                left: 50%;
-                transform: translateX(-50%);
-            }
-            .timeline-item:nth-child(odd) .timeline-content {
-                margin-left: auto;
-                padding-left: 3rem;
-            }
-            .timeline-item:nth-child(even) .timeline-content {
-                margin-right: auto;
-                padding-right: 3rem;
-                text-align: right;
-            }
-            .timeline-item:nth-child(even) .timeline-dot {
-                left: calc(50% - 10px);
-            }
+        .flip-card-back {
+            transform: rotateY(180deg);
         }
-        
-        .fade-in {
-            animation: fadeIn 0.8s ease-in-out;
+
+        /* 2. SCROLL REVEAL ANIMATION */
+        .reveal {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 0.8s ease-out;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
         }
-        .shake {
-            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+
+        /* Game Canvas Style */
+        #gameCanvas {
+            background: linear-gradient(to bottom, #38bdf8 0%, #0284c7 40%, #0369a1 100%);
+            touch-action: none;
+            border-radius: 1.5rem;
         }
+
+        /* Bounce effect for mascot */
+        @keyframes float-gentle {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-float {
+            animation: float-gentle 3s ease-in-out infinite;
+        }
+
+        /* Shake animation for wrong fishing catch */
         @keyframes shake {
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
         }
-        
-        /* Tambahan CSS Game Memancing */
-        #game-container {
-            touch-action: none; /* Elak scrolling ketika main */
-        }
-        .glass-panel {
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-        .interactive {
-            pointer-events: auto;
+        .animate-shake {
+            animation: shake 0.4s ease-in-out;
         }
     </style>
 </head>
-<body class="text-gray-800 antialiased">
+<body class="text-slate-800 antialiased">
 
-    <!-- Header Section -->
-    <header class="bg-emerald-700 text-white py-12 px-4 shadow-lg text-center fade-in">
-        <h1 class="text-3xl md:text-5xl font-bold mb-4">Beriman Dengan Hari Akhirat</h1>
-        <p class="text-emerald-100 text-lg md:text-xl max-w-2xl mx-auto">Pendidikan Islam - Bidang Akidah (Pelajaran 3.3)</p>
+    <!-- BAR ATAS / HEADER -->
+    <header class="sticky top-0 z-40 bg-emerald-700/90 backdrop-blur-md text-white shadow-lg border-b border-emerald-600">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <span class="text-3xl">📖</span>
+                <div>
+                    <h1 class="font-bold text-lg md:text-xl leading-tight">Pendidikan Islam Tahun 5</h1>
+                    <p class="text-xs text-emerald-200">Bidang Aqidah: Beriman dengan Hari Akhirat</p>
+                </div>
+            </div>
+            <button id="soundToggle" onclick="toggleAudio()" class="bg-emerald-800/80 hover:bg-emerald-600 px-3 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 border border-emerald-500 transition-all">
+                <i class="fas fa-volume-up text-yellow-300" id="soundIcon"></i>
+                <span id="soundText" class="hidden sm:inline">Bunyi: Hidup</span>
+            </button>
+        </div>
     </header>
 
-    <main class="max-w-6xl mx-auto px-4 py-8 space-y-12">
-        
-        <!-- Objektif Pembelajaran -->
-        <section class="bg-white rounded-2xl shadow-md border-l-8 border-emerald-500 p-6 md:p-8 fade-in">
-            <div class="flex items-center gap-4 mb-4">
-                <div class="bg-emerald-100 text-emerald-600 p-3 rounded-full">
+    <main class="max-w-5xl mx-auto px-4 py-8 space-y-10">
+
+        <!-- KOTAK OBJEKTIF PEMBELAJARAN RINGKAS -->
+        <section class="reveal glass-card rounded-3xl p-6 border-l-8 border-emerald-500 bg-gradient-to-r from-emerald-50/80 to-white">
+            <div class="flex items-start gap-4">
+                <div class="bg-emerald-500 text-white p-3.5 rounded-2xl shadow-md shrink-0">
                     <i class="fas fa-bullseye text-2xl"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Objektif Pembelajaran</h2>
-            </div>
-            <p class="text-gray-600 mb-2">Pada akhir sesi pengajaran dan pembelajaran ini, murid akan dapat:</p>
-            <div class="bg-emerald-50 p-5 rounded-xl border border-emerald-100 mt-4 shadow-inner">
-                <p class="text-lg md:text-xl text-emerald-800 font-semibold flex items-center gap-3">
-                    <i class="fas fa-check-circle text-emerald-500 text-2xl"></i>
-                    Menyusun 5 peringkat alam akhirat mengikut urutan yang betul.
-                </p>
+                <div>
+                    <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Objektif Pembelajaran</span>
+                    <h2 class="text-xl md:text-2xl font-bold text-slate-800 mt-1">
+                        Di akhir pembelajaran ini, murid dapat:
+                    </h2>
+                    <p class="text-emerald-900 font-medium text-lg mt-2 flex items-center gap-2">
+                        <i class="fas fa-check-circle text-emerald-600"></i>
+                        <span>Menyusun <strong class="text-emerald-700 underline underline-offset-4">5 peringkat alam akhirat</strong> mengikut urutan yang betul.</span>
+                    </p>
+                </div>
             </div>
         </section>
 
-        <!-- Pengertian & Hukum Grid -->
-        <section class="grid md:grid-cols-2 gap-6 fade-in">
+        <!-- SEKSYEN 1: PENGERTIAN & HUKUM -->
+        <section class="reveal grid md:grid-cols-2 gap-6">
             <!-- Pengertian -->
-            <div class="bg-white rounded-2xl shadow-md p-6 md:p-8 hover:shadow-lg transition">
-                <h2 class="text-xl font-bold text-emerald-700 mb-4 flex items-center gap-2">
-                    <i class="fas fa-book-open"></i> Pengertian
-                </h2>
-                <div class="space-y-4 text-gray-700">
-                    <p class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
-                        <strong>Hari akhirat bermaksud</strong> hari berlakunya kehancuran seluruh alam dan diikuti dengan manusia akan dibangkitkan.
-                    </p>
-                    <p class="bg-emerald-50 p-4 rounded-lg border border-emerald-100">
-                        Manusia akan berhimpun di <strong>Padang Mahsyar</strong> untuk dihitung amalannya bagi menerima pembalasan sama ada syurga ataupun neraka.
-                    </p>
+            <div class="glass-card rounded-3xl p-6 hover:shadow-xl transition-all border-top-4 border-teal-500">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">🌍</span>
+                    <h3 class="text-xl font-bold text-slate-800">Pengertian Hari Akhirat</h3>
+                </div>
+                <p class="text-slate-600 leading-relaxed">
+                    Hari akhirat bermaksud <strong class="text-teal-700">hari berlakunya kehancuran seluruh alam</strong> dan diikuti dengan manusia akan dibangkitkan semula.
+                </p>
+                <div class="mt-4 p-4 bg-teal-50/60 rounded-2xl border border-teal-100 text-sm text-teal-800">
+                    <i class="fas fa-info-circle mr-1 text-teal-600"></i> Manusia akan berhimpun di <strong>Padang Mahsyar</strong> untuk dihitung amalannya bagi menerima pembalasan sama ada <strong>syurga</strong> atau <strong>neraka</strong>.
                 </div>
             </div>
 
             <!-- Hukum -->
-            <div class="bg-white rounded-2xl shadow-md p-6 md:p-8 hover:shadow-lg transition">
-                <h2 class="text-xl font-bold text-emerald-700 mb-4 flex items-center gap-2">
-                    <i class="fas fa-scale-balanced"></i> Hukum Beriman
-                </h2>
-                <div class="flex flex-col items-center justify-center h-48 bg-emerald-50 rounded-xl border border-emerald-100">
-                    <span class="text-4xl font-bold text-emerald-600 mb-2">WAJIB</span>
-                    <p class="text-gray-600 text-center px-4">Beriman dengan hari akhirat merupakan salah satu daripada Rukun Iman.</p>
+            <div class="glass-card rounded-3xl p-6 hover:shadow-xl transition-all border-top-4 border-amber-500">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">⚖️</span>
+                    <h3 class="text-xl font-bold text-slate-800">Hukum Beriman</h3>
                 </div>
-            </div>
-        </section>
-
-        <!-- Dalil Naqli -->
-        <section class="bg-white rounded-2xl shadow-md p-6 md:p-8 fade-in">
-            <h2 class="text-2xl font-bold text-emerald-700 mb-6 text-center">Dalil Naqli</h2>
-            <div class="grid md:grid-cols-2 gap-8">
-                <!-- Dalil 1 -->
-                <div class="border border-gray-200 rounded-xl p-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-bl-lg">Surah Al-Hajj 1:22</div>
-                    <p class="arabic-text text-center text-emerald-900 mt-6 mb-4">
-                        يَٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُواْ رَبَّكُمۡۚ إِنَّ زَلۡزَلَةَ ٱلسَّاعَةِ شَيۡءٌ عَظِيمٞ
-                    </p>
-                    <p class="text-sm text-gray-600 text-center italic mt-4 border-t pt-4">
-                        Maksudnya: "Wahai semua manusia, bertakwalah kepada tuhan kamu. Sesungguhnya kegoncangan hari kiamat itu suatu perkara yang amat besar."
-                    </p>
+                <div class="flex items-center justify-between bg-amber-50 border border-amber-200 p-4 rounded-2xl mb-3">
+                    <span class="font-bold text-amber-900">Hukum Mempercayainya:</span>
+                    <span class="bg-amber-500 text-white font-bold px-4 py-1.5 rounded-xl shadow">WAJIB</span>
                 </div>
-                <!-- Dalil 2 -->
-                <div class="border border-gray-200 rounded-xl p-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-bl-lg">Surah Al-Baqarah 177:2</div>
-                    <p class="arabic-text text-center text-emerald-900 mt-6 mb-4">
-                        وَلَـٰكِنَّ ٱلْبِرَّ مَنْ ءَامَنَ بِٱللَّهِ وَٱلْيَوْمِ ٱلْـَٔاخِرِ وَٱلْمَلَـٰٓئِكَةِ وَٱلْكِتَـٰبِ وَٱلنَّبِيِّـۧنَ
-                    </p>
-                    <p class="text-sm text-gray-600 text-center italic mt-4 border-t pt-4">
-                        Maksudnya: "...tetapi kebaikan itu ialah berimannya seseorang kepada Allah, Hari Akhirat, para Malaikat, segala kitab dan seluruh para Nabi..."
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Peringkat Alam Akhirat (Timeline) -->
-        <section class="fade-in">
-            <h2 class="text-2xl font-bold text-emerald-700 mb-10 text-center">Peringkat Alam Akhirat</h2>
-            
-            <div class="relative py-4">
-                <div class="timeline-line hidden md:block"></div>
-                
-                <div class="space-y-8">
-                    <!-- Item 1 -->
-                    <div class="timeline-item relative md:w-1/2 flex items-center mb-8 pl-12 md:pl-0">
-                        <div class="absolute left-[16px] md:left-[calc(100%-10px)] top-1/2 transform -translate-y-1/2 w-5 h-5 rounded-full bg-emerald-600 border-4 border-white shadow z-10 timeline-dot"></div>
-                        <div class="timeline-content w-full md:pr-12">
-                            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-emerald-500">
-                                <h3 class="font-bold text-lg text-emerald-800">1. Kehancuran Alam</h3>
-                                <p class="text-gray-600 mt-1">Semua makhluk akan dimatikan dan dihancurkan.</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Item 2 -->
-                    <div class="timeline-item relative md:w-1/2 flex items-center mb-8 pl-12 md:pl-0 md:ml-auto">
-                        <div class="absolute left-[16px] md:-left-[10px] top-1/2 transform -translate-y-1/2 w-5 h-5 rounded-full bg-emerald-600 border-4 border-white shadow z-10 timeline-dot"></div>
-                        <div class="timeline-content w-full md:pl-12">
-                            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-emerald-500 md:border-l-0 md:border-r-4 text-left md:text-right">
-                                <h3 class="font-bold text-lg text-emerald-800">2. Peristiwa Kebangkitan</h3>
-                                <p class="text-gray-600 mt-1">Semua makhluk yang mati akan dihidupkan semula.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Item 3 -->
-                    <div class="timeline-item relative md:w-1/2 flex items-center mb-8 pl-12 md:pl-0">
-                        <div class="absolute left-[16px] md:left-[calc(100%-10px)] top-1/2 transform -translate-y-1/2 w-5 h-5 rounded-full bg-emerald-600 border-4 border-white shadow z-10 timeline-dot"></div>
-                        <div class="timeline-content w-full md:pr-12">
-                            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-emerald-500">
-                                <h3 class="font-bold text-lg text-emerald-800">3. Perhimpunan di Padang Mahsyar</h3>
-                                <p class="text-gray-600 mt-1">Semua makhluk dihimpunkan untuk menerima pengadilan Allah SWT yang Maha Adil.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Item 4 -->
-                    <div class="timeline-item relative md:w-1/2 flex items-center mb-8 pl-12 md:pl-0 md:ml-auto">
-                        <div class="absolute left-[16px] md:-left-[10px] top-1/2 transform -translate-y-1/2 w-5 h-5 rounded-full bg-emerald-600 border-4 border-white shadow z-10 timeline-dot"></div>
-                        <div class="timeline-content w-full md:pl-12">
-                            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-emerald-500 md:border-l-0 md:border-r-4 text-left md:text-right">
-                                <h3 class="font-bold text-lg text-emerald-800">4. Perhitungan Amalan</h3>
-                                <p class="text-gray-600 mt-1">Setiap manusia akan dihitung amalannya ketika di dunia.</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Item 5 -->
-                    <div class="timeline-item relative md:w-1/2 flex items-center mb-8 pl-12 md:pl-0">
-                        <div class="absolute left-[16px] md:left-[calc(100%-10px)] top-1/2 transform -translate-y-1/2 w-5 h-5 rounded-full bg-emerald-600 border-4 border-white shadow z-10 timeline-dot"></div>
-                        <div class="timeline-content w-full md:pr-12">
-                            <div class="bg-white p-5 rounded-xl shadow-md border-l-4 border-emerald-500 bg-gradient-to-r from-emerald-50 to-white">
-                                <h3 class="font-bold text-lg text-emerald-800">5. Syurga atau Neraka</h3>
-                                <p class="text-gray-600 mt-1">Balasan syurga kepada mereka yang beramal soleh dan azab neraka bagi yang melakukan kejahatan ketika di dunia.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Nama-nama Lain -->
-        <section class="bg-emerald-800 text-white rounded-2xl shadow-lg p-6 md:p-10 fade-in mb-10">
-            <h2 class="text-2xl font-bold mb-8 text-center flex items-center justify-center gap-3">
-                <i class="fas fa-tags text-emerald-300"></i> Nama-Nama Lain Bagi Hari Akhirat
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                
-                <!-- Card -->
-                <div class="bg-emerald-700/50 p-4 rounded-xl border border-emerald-600 hover:bg-emerald-600 transition flex flex-col items-center text-center">
-                    <span class="arabic-text text-2xl text-emerald-100 mb-2">يَوْمُ الْقِيَامَة</span>
-                    <span class="font-semibold tracking-wide">Hari Kebangkitan</span>
-                </div>
-                <!-- Card -->
-                <div class="bg-emerald-700/50 p-4 rounded-xl border border-emerald-600 hover:bg-emerald-600 transition flex flex-col items-center text-center">
-                    <span class="arabic-text text-2xl text-emerald-100 mb-2">يَوۡمُ الدِّين</span>
-                    <span class="font-semibold tracking-wide">Hari Pembalasan</span>
-                </div>
-                <!-- Card -->
-                <div class="bg-emerald-700/50 p-4 rounded-xl border border-emerald-600 hover:bg-emerald-600 transition flex flex-col items-center text-center">
-                    <span class="arabic-text text-2xl text-emerald-100 mb-2">يَوْمُ الْحِسَاب</span>
-                    <span class="font-semibold tracking-wide">Hari Perhitungan Amalan</span>
-                </div>
-                <!-- Card -->
-                <div class="bg-emerald-700/50 p-4 rounded-xl border border-emerald-600 hover:bg-emerald-600 transition flex flex-col items-center text-center">
-                    <span class="arabic-text text-2xl text-emerald-100 mb-2">يَوْمُ الْخُلُود</span>
-                    <span class="font-semibold tracking-wide">Hari Kehidupan Abadi</span>
-                </div>
-                <!-- Card -->
-                <div class="bg-emerald-700/50 p-4 rounded-xl border border-emerald-600 hover:bg-emerald-600 transition flex flex-col items-center text-center">
-                    <span class="arabic-text text-2xl text-emerald-100 mb-2">يَوْمُ الْحَشْر</span>
-                    <span class="font-semibold tracking-wide text-sm">Hari Berkumpulnya Makhluk Untuk Dihisab</span>
-                </div>
-                <!-- Card -->
-                <div class="bg-emerald-700/50 p-4 rounded-xl border border-emerald-600 hover:bg-emerald-600 transition flex flex-col items-center text-center">
-                    <span class="arabic-text text-2xl text-emerald-100 mb-2">يَوْمُ الْخُرُوج</span>
-                    <span class="font-semibold tracking-wide text-sm">Hari Keluarnya Manusia Daripada Kubur</span>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Aktiviti Interaktif -->
-        <section class="bg-white rounded-2xl shadow-md border-t-8 border-emerald-500 p-6 md:p-10 fade-in mb-10" id="aktiviti">
-            <div class="text-center mb-8">
-                <h2 class="text-2xl font-bold text-emerald-700 mb-3 flex justify-center items-center gap-2">
-                    <i class="fas fa-gamepad text-emerald-500"></i> Aktiviti Pengukuhan: Pancingan Akhirat
-                </h2>
-                <p class="text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100 inline-block">
-                    <strong>Arahan:</strong> Pancing ikan yang membawa label <strong>Peringkat Alam Akhirat</strong> mengikut urutan yang betul (Langkah 1 hingga 5). <br>Sentuh atau klik pada kawasan kolam untuk melabuhkan pancing.
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    Beriman dengan Hari Akhirat merupakan salah satu daripada <strong class="text-amber-800">Rukun Iman</strong> yang wajib dipegang teguh oleh setiap umat Islam.
                 </p>
             </div>
+        </section>
 
-            <div class="max-w-4xl mx-auto">
-                <div id="game-container" class="relative w-full h-[450px] sm:h-[500px] rounded-2xl overflow-hidden border-4 border-emerald-300 shadow-lg bg-sky-200">
-                    <canvas id="gameCanvas" class="block w-full h-full"></canvas>
+        <!-- SEKSYEN 2: DALIL NAQLI (INTERAKTIF HIDE & REVEAL) -->
+        <section class="reveal glass-card rounded-3xl p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-emerald-600 text-white p-2.5 rounded-xl"><i class="fas fa-book-quran text-xl"></i></div>
+                <h3 class="text-xl md:text-2xl font-bold text-slate-800">Dalil Naqli Hari Akhirat</h3>
+            </div>
 
-                    <!-- Lapisan Antaramuka (UI) -->
-                    <div id="ui-layer" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10 flex flex-col justify-between p-4">
-                        
-                        <!-- HUD -->
-                        <div id="hud" class="hidden flex justify-between items-start w-full interactive">
-                            <div class="glass-panel px-4 py-2 rounded-xl flex flex-col items-center text-emerald-900 border-2 border-emerald-400 bg-emerald-100/90 shadow-sm">
-                                <p class="text-xs uppercase font-bold tracking-wider">Cari (Langkah <span id="stepDisplay">1</span>/5)</p>
-                                <p class="text-lg sm:text-xl font-bold" id="targetDisplay">Kehancuran Alam</p>
-                            </div>
-                            <div class="glass-panel px-4 py-2 rounded-xl flex items-center gap-2 text-red-600 font-bold bg-white/90 shadow-sm">
-                                <i class="fas fa-heart"></i> <span id="lifeDisplay">3</span>
-                            </div>
+            <div class="space-y-6">
+                <!-- Dalil 1 -->
+                <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-lg">Surah Al-Hajj (Ayat 1)</span>
+                        <i class="fas fa-quote-right text-emerald-300"></i>
+                    </div>
+                    <p class="font-arabic text-right text-2xl md:text-3xl text-emerald-950 my-4" dir="rtl">
+                        يَٰٓأَيُّهَا ٱلنَّاسُ ٱتَّقُواْ رَبَّكُمۡۚ إِنَّ زَلۡزَلَةَ ٱلسَّاعَةِ شَيۡءٌ عَظِيمٞ
+                    </p>
+                    <button onclick="toggleReveal('dalil1', this)" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm">
+                        <i class="fas fa-eye"></i> <span>Klik untuk lihat maksud terjemahan</span>
+                    </button>
+                    <div id="dalil1" class="hidden mt-3 p-4 bg-white rounded-xl text-slate-700 text-sm border border-emerald-100 shadow-inner">
+                        <strong>Maksud:</strong> "Wahai semua manusia, bertakwalah kepada Tuhan kamu. Sesungguhnya kegoncangan hari kiamat itu suatu perkara yang amat besar."
+                    </div>
+                </div>
+
+                <!-- Dalil 2 -->
+                <div class="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-lg">Surah Al-Baqarah (Ayat 177)</span>
+                        <i class="fas fa-quote-right text-emerald-300"></i>
+                    </div>
+                    <p class="font-arabic text-right text-2xl md:text-3xl text-emerald-950 my-4" dir="rtl">
+                        ...وَلَـٰكِنَّ ٱلْبِرَّ مَنْ ءَامَنَ بِٱللَّهِ وَٱلْيَوْمِ ٱلْـَٔاخِرِ وَٱلْمَلَـٰٓئِكَةِ وَٱلْكِتَـٰبِ وَٱلنَّبِيِّـۧنَ...
+                    </p>
+                    <button onclick="toggleReveal('dalil2', this)" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm">
+                        <i class="fas fa-eye"></i> <span>Klik untuk lihat maksud terjemahan</span>
+                    </button>
+                    <div id="dalil2" class="hidden mt-3 p-4 bg-white rounded-xl text-slate-700 text-sm border border-emerald-100 shadow-inner">
+                        <strong>Maksud:</strong> "...tetapi kebaikan itu ialah berimannya seseorang kepada Allah, Hari Akhirat, para Malaikat, segala kitab dan seluruh para Nabi..."
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEKSYEN 3: NOTA URUTAN 5 PERINGKAT HARI AKHIRAT -->
+        <section class="reveal glass-card rounded-3xl p-6 md:p-8 border-t-4 border-emerald-500">
+            <div class="text-center max-w-xl mx-auto mb-8">
+                <span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Fokus Utama</span>
+                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">5 Peringkat Alam Akhirat</h3>
+                <p class="text-slate-500 text-sm mt-1">Sila baca dan fahami urutan ini dengan teliti sebelum memulakan aktiviti memancing!</p>
+            </div>
+
+            <div class="relative border-l-4 border-emerald-300 ml-4 md:ml-32 space-y-8 my-4">
+                <!-- Peringkat 1 -->
+                <div class="relative pl-6 md:pl-8">
+                    <div class="absolute -left-[17px] top-1 bg-emerald-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shadow">1</div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-emerald-800 text-lg">Kehancuran Alam</h4>
+                        <p class="text-slate-600 text-sm mt-1">Semua makhluk akan dimatikan dan alam semesta dihancurkan.</p>
+                    </div>
+                </div>
+
+                <!-- Peringkat 2 -->
+                <div class="relative pl-6 md:pl-8">
+                    <div class="absolute -left-[17px] top-1 bg-emerald-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shadow">2</div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-emerald-800 text-lg">Peristiwa Kebangkitan</h4>
+                        <p class="text-slate-600 text-sm mt-1">Semua makhluk yang mati akan dihidupkan semula daripada kubur.</p>
+                    </div>
+                </div>
+
+                <!-- Peringkat 3 -->
+                <div class="relative pl-6 md:pl-8">
+                    <div class="absolute -left-[17px] top-1 bg-emerald-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shadow">3</div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-emerald-800 text-lg">Perhimpunan di Padang Mahsyar</h4>
+                        <p class="text-slate-600 text-sm mt-1">Semua makhluk dihimpunkan untuk menerima pengadilan Allah SWT yang Maha Adil.</p>
+                    </div>
+                </div>
+
+                <!-- Peringkat 4 -->
+                <div class="relative pl-6 md:pl-8">
+                    <div class="absolute -left-[17px] top-1 bg-emerald-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shadow">4</div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-emerald-800 text-lg">Perhitungan Amalan (Hisab)</h4>
+                        <p class="text-slate-600 text-sm mt-1">Setiap manusia akan dihitung dan ditimbang amalannya ketika di dunia.</p>
+                    </div>
+                </div>
+
+                <!-- Peringkat 5 -->
+                <div class="relative pl-6 md:pl-8">
+                    <div class="absolute -left-[17px] top-1 bg-emerald-500 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center shadow">5</div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h4 class="font-bold text-emerald-800 text-lg">Syurga atau Neraka</h4>
+                        <p class="text-slate-600 text-sm mt-1">Balasan syurga bagi yang beramal soleh dan azab neraka bagi yang melakukan kejahatan.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SEKSYEN 4: FLIP CARDS NAMA-NAMA LAIN -->
+        <section class="reveal glass-card rounded-3xl p-6 md:p-8">
+            <div class="text-center max-w-md mx-auto mb-6">
+                <span class="bg-sky-100 text-sky-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Interaktif</span>
+                <h3 class="text-2xl font-bold text-slate-800 mt-1">Nama-Nama Lain Hari Akhirat</h3>
+                <p class="text-slate-500 text-xs mt-1">Sentuh atau halakan tetikus pada kad untuk melihat maksudnya!</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Card 1 -->
+                <div class="flip-card" onclick="playCardFlip()">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md">
+                            <span class="font-arabic text-2xl font-bold">يَوْمُ الْقِيَامَة‎</span>
+                            <span class="text-xs mt-2 text-emerald-100">Yaumul Qiyamah</span>
                         </div>
-
-                        <!-- Mesej Tengah (Betul/Salah) -->
-                        <div id="centerMessage" class="hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glass-panel px-6 py-3 rounded-2xl text-xl sm:text-2xl font-bold text-center transition-all duration-300 text-white shadow-lg">
+                        <div class="flip-card-back bg-slate-800 text-white shadow-md">
+                            <i class="fas fa-sun text-yellow-400 mb-1"></i>
+                            <span class="font-bold text-sm">Hari Kebangkitan</span>
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Skrin Mula -->
-                        <div id="startScreen" class="absolute inset-0 flex items-center justify-center interactive z-20 bg-black/40 backdrop-blur-sm">
-                            <div class="glass-panel p-6 sm:p-8 rounded-2xl text-center max-w-sm mx-4 bg-white/95 shadow-xl">
-                                <div class="text-5xl mb-3">🎣</div>
-                                <h3 class="text-2xl font-bold text-emerald-800 mb-2">Pancingan Akhirat</h3>
-                                <p class="text-gray-700 mb-6 text-sm">Pancing ikan yang membawa label mengikut urutan alam akhirat yang betul. Awas, jangan tersalah pancing!</p>
-                                <button onclick="startGame()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-full shadow-md transition-transform hover:scale-105 active:scale-95 w-full">
-                                    MULA MAIN
-                                </button>
-                            </div>
+                <!-- Card 2 -->
+                <div class="flip-card" onclick="playCardFlip()">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front bg-gradient-to-br from-teal-500 to-cyan-600 text-white shadow-md">
+                            <span class="font-arabic text-2xl font-bold">يَوۡمُ الدِّين</span>
+                            <span class="text-xs mt-2 text-teal-100">Yaumud Din</span>
                         </div>
+                        <div class="flip-card-back bg-slate-800 text-white shadow-md">
+                            <i class="fas fa-balance-scale text-yellow-400 mb-1"></i>
+                            <span class="font-bold text-sm">Hari Pembalasan</span>
+                        </div>
+                    </div>
+                </div>
 
-                        <!-- Skrin Tamat -->
-                        <div id="gameOverScreen" class="absolute inset-0 hidden items-center justify-center interactive z-20 bg-black/60 backdrop-blur-sm">
-                            <div class="glass-panel p-6 sm:p-8 rounded-2xl text-center max-w-sm mx-4 bg-white/95 shadow-xl">
-                                <div id="endIcon" class="text-6xl mb-4">🏆</div>
-                                <h2 id="endTitle" class="text-3xl font-bold text-emerald-800 mb-2">Tahniah!</h2>
-                                <p id="endDesc" class="text-gray-700 mb-6">Anda telah berjaya menyusun semua peringkat dengan betul.</p>
-                                <button onclick="startGame()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-full shadow-md transition-transform hover:scale-105 active:scale-95 w-full">
-                                    MAIN LAGI
-                                </button>
-                            </div>
+                <!-- Card 3 -->
+                <div class="flip-card" onclick="playCardFlip()">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md">
+                            <span class="font-arabic text-2xl font-bold">يَوْمُ الْحِسَاب</span>
+                            <span class="text-xs mt-2 text-sky-100">Yaumul Hisab</span>
+                        </div>
+                        <div class="flip-card-back bg-slate-800 text-white shadow-md">
+                            <i class="fas fa-calculator text-yellow-400 mb-1"></i>
+                            <span class="font-bold text-sm">Hari Perhitungan Amalan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="flip-card" onclick="playCardFlip()">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md">
+                            <span class="font-arabic text-2xl font-bold">يَوْمُ الْخُلُود</span>
+                            <span class="text-xs mt-2 text-indigo-100">Yaumul Khulud</span>
+                        </div>
+                        <div class="flip-card-back bg-slate-800 text-white shadow-md">
+                            <i class="fas fa-infinity text-yellow-400 mb-1"></i>
+                            <span class="font-bold text-sm">Hari Kehidupan Abadi</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5 -->
+                <div class="flip-card" onclick="playCardFlip()">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front bg-gradient-to-br from-emerald-600 to-green-600 text-white shadow-md">
+                            <span class="font-arabic text-2xl font-bold">يَوْمُ الْحَشْر</span>
+                            <span class="text-xs mt-2 text-emerald-100">Yaumul Hashr</span>
+                        </div>
+                        <div class="flip-card-back bg-slate-800 text-white shadow-md">
+                            <i class="fas fa-users text-yellow-400 mb-1"></i>
+                            <span class="font-bold text-sm">Hari Berkumpulnya Makhluk</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 6 -->
+                <div class="flip-card" onclick="playCardFlip()">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front bg-gradient-to-br from-teal-600 to-emerald-700 text-white shadow-md">
+                            <span class="font-arabic text-2xl font-bold">يَوْمُ الْخُرُوج</span>
+                            <span class="text-xs mt-2 text-teal-100">Yaumul Khuruj</span>
+                        </div>
+                        <div class="flip-card-back bg-slate-800 text-white shadow-md">
+                            <i class="fas fa-door-open text-yellow-400 mb-1"></i>
+                            <span class="font-bold text-sm">Hari Keluar dari Kubur</span>
                         </div>
                     </div>
                 </div>
             </div>
+        </section>
+
+        <!-- SEKSYEN 5: GAME MEMANCING IKAN (AKTIVITI PENGUKUHAN OBJEKTIF) -->
+        <section id="game-section" class="reveal glass-card rounded-3xl p-4 md:p-8 border-4 border-yellow-400 relative">
+            <div class="text-center max-w-lg mx-auto mb-4">
+                <span class="bg-yellow-400 text-yellow-950 font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow">Aktiviti Pengukuhan</span>
+                <h3 class="text-2xl md:text-3xl font-bold text-slate-800 mt-2">🎣 Cabaran Memancing Urutan Akhirat</h3>
+                <p class="text-slate-600 text-sm mt-1">Tangkap ikan yang membawa label peringkat mengikut urutan yang betul (Langkah 1 hingga 5)!</p>
+            </div>
+
+            <!-- Panel Sasaran Semasa -->
+            <div class="bg-slate-900 text-white p-4 rounded-2xl mb-4 flex flex-col sm:flex-row justify-between items-center gap-3 shadow-inner">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Sasaran Anda:</span>
+                    <span id="targetText" class="bg-emerald-500 text-white font-bold px-3 py-1 rounded-lg text-sm animate-pulse">
+                        Langkah 1: Kehancuran Alam
+                    </span>
+                </div>
+                <div class="flex items-center gap-4 text-sm font-bold">
+                    <div class="text-yellow-400"><i class="fas fa-star mr-1"></i> Skor: <span id="gameScore">0</span></div>
+                    <div class="text-red-400"><i class="fas fa-heart mr-1"></i> Nyawa: <span id="gameLives">❤️❤️❤️</span></div>
+                </div>
+            </div>
+
+            <!-- Canvas Kawasan Game -->
+            <div class="relative w-full h-[380px] sm:h-[450px] overflow-hidden rounded-2xl shadow-xl border border-sky-300">
+                <canvas id="gameCanvas" class="w-full h-full cursor-pointer"></canvas>
+
+                <!-- Overlay Mula Game -->
+                <div id="gameStartOverlay" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center text-white z-20">
+                    <div class="text-6xl mb-3 animate-bounce">🎣</div>
+                    <h4 class="text-2xl font-bold text-yellow-300 mb-2">Bantu Ustaz Memancing!</h4>
+                    <p class="text-slate-200 text-sm max-w-md mb-6 leading-relaxed">
+                        Pancing ikan yang membawa tajuk peringkat yang betul mengikut susunan 1 hingga 5. Elakkan tersalah tangkap!
+                    </p>
+                    <button onclick="startFishingGame()" class="bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-extrabold text-lg px-8 py-3.5 rounded-2xl shadow-lg border-2 border-white transition-all transform hover:scale-105 active:scale-95">
+                        MULA MEMANCING <i class="fas fa-play ml-2"></i>
+                    </button>
+                </div>
+
+                <!-- Overlay Game Over / Kejayaan -->
+                <div id="gameOverOverlay" class="hidden absolute inset-0 bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center text-white z-20">
+                    <div id="gameResultIcon" class="text-6xl mb-3">🎉</div>
+                    <h4 id="gameResultTitle" class="text-3xl font-bold text-yellow-300 mb-2">Tahniah!</h4>
+                    <p id="gameResultDesc" class="text-slate-200 text-sm max-w-md mb-6">
+                        Anda berjaya menyusun kesemua 5 Peringkat Alam Akhirat mengikut urutan yang betul!
+                    </p>
+                    <button onclick="startFishingGame()" class="bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-lg px-8 py-3 rounded-2xl shadow-lg border border-white/40 transition-all transform hover:scale-105">
+                        <i class="fas fa-redo mr-2"></i> Main Lagi
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-center text-xs text-slate-400 mt-2">Petua: Klik atau sentuh pada skrin canvas untuk menurunkan kail pancing.</p>
         </section>
 
     </main>
 
-    <!-- Footer -->
-    <footer class="text-center py-6 text-emerald-700 font-semibold bg-emerald-100 mt-8">
-        <p>Bahan Pengajaran dan Pembelajaran Terbuka &copy; 2026</p>
+    <!-- MASCOT PEMBIMBING (USTAZ) ATAS SKRIN -->
+    <div id="mascotContainer" class="fixed bottom-4 right-4 z-30 flex items-end gap-2 pointer-events-none transition-all duration-500">
+        <!-- Dialogue Bubble -->
+        <div id="mascotBubble" class="bg-white text-slate-800 text-xs md:text-sm font-semibold p-3.5 rounded-2xl shadow-xl border-2 border-emerald-500 max-w-[200px] md:max-w-[240px] relative pointer-events-auto animate-float">
+            <span id="mascotText">Assalamualaikum murid-murid! Mari belajar tentang Hari Akhirat hari ini. 😊</span>
+            <div class="absolute -right-2 bottom-3 w-0 h-0 border-t-8 border-t-transparent border-l-8 border-l-emerald-500 border-b-8 border-b-transparent"></div>
+        </div>
+        <!-- Avatar Icon -->
+        <div class="bg-emerald-600 text-white p-3 rounded-full text-3xl shadow-xl border-2 border-white pointer-events-auto cursor-pointer animate-float" onclick="speakMascotRandom()">
+            👳‍♂️
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-800 text-slate-400 text-center py-6 text-xs mt-16 border-t border-slate-700">
+        <p>© Bahan Pengajaran & Pembelajaran Interaktif Pendidikan Islam Sekolah Rendah</p>
+        <p class="mt-1 text-slate-500">Direka khas untuk kemudahan PdP Guru dan Murid.</p>
     </footer>
 
+    <!-- LOGIK JAVASCRIPT & AUDIO (TONE.JS) -->
     <script>
-        // Logik Permainan Memancing
-        const urutanSebenar = [
-            'Kehancuran Alam',
-            'Peristiwa Kebangkitan',
-            'Perhimpunan di Padang Mahsyar',
-            'Perhitungan Amalan',
-            'Syurga atau Neraka'
+        /* -------------------------------------------------------------
+           1. KONTROL AUDIO & SYNTHESIZER (Tone.js)
+           ------------------------------------------------------------- */
+        let audioEnabled = true;
+
+        // Inisialisasi Synth untuk kesan bunyi
+        let clickSynth, successSynth, errorSynth, splashSynth;
+
+        function initAudio() {
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+            
+            // Synth untuk klik / pusing kad
+            clickSynth = new Tone.MembraneSynth({ pitchDecay: 0.01, octaves: 2 }).toDestination();
+            
+            // Synth untuk bunyi betul (Ting!)
+            successSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+            
+            // Synth untuk bunyi salah (Buzzer)
+            errorSynth = new Tone.MetalSynth({ harmonicity: 12, resonance: 200, modulationIndex: 3 }).toDestination();
+            
+            // Noise Synth untuk bunyi air splash
+            splashSynth = new Tone.NoiseSynth({ noise: { type: 'white' }, envelope: { attack: 0.005, decay: 0.2, sustain: 0 } }).toDestination();
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            const icon = document.getElementById('soundIcon');
+            const text = document.getElementById('soundText');
+            if (audioEnabled) {
+                icon.className = "fas fa-volume-up text-yellow-300";
+                text.innerText = "Bunyi: Hidup";
+            } else {
+                icon.className = "fas fa-volume-mute text-slate-400";
+                text.innerText = "Bunyi: Senyap";
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                if (!clickSynth) initAudio();
+                
+                if (type === 'click') {
+                    clickSynth.triggerAttackRelease("C3", "8n");
+                } else if (type === 'flip') {
+                    clickSynth.triggerAttackRelease("G3", "16n");
+                } else if (type === 'success') {
+                    successSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+                } else if (type === 'error') {
+                    errorSynth.triggerAttackRelease("C2", "8n");
+                } else if (type === 'splash') {
+                    splashSynth.triggerAttackRelease("8n");
+                }
+            } catch (e) {
+                console.log("Audio play error:", e);
+            }
+        }
+
+        function playCardFlip() {
+            playSound('flip');
+        }
+
+        /* -------------------------------------------------------------
+           2. INTERAKSI U-I: HIDE & REVEAL & MASCOT
+           ------------------------------------------------------------- */
+        function toggleReveal(id, btn) {
+            initAudio();
+            playSound('click');
+            const el = document.getElementById(id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+                btn.innerHTML = `<i class="fas fa-eye-slash"></i> <span>Sembunyikan terjemahan</span>`;
+                btn.classList.replace('bg-emerald-600', 'bg-slate-600');
+            } else {
+                el.classList.add('hidden');
+                btn.innerHTML = `<i class="fas fa-eye"></i> <span>Klik untuk lihat maksud terjemahan</span>`;
+                btn.classList.replace('bg-slate-600', 'bg-emerald-600');
+            }
+        }
+
+        // Mascot Dialog System
+        const mascotMessages = [
+            "Ingat ya murid-murid, beriman dengan Hari Akhirat ialah Rukun Iman ke-5!",
+            "Semua amalan kita di dunia akan dihitung di Padang Mahsyar nanti.",
+            "Cuba klik kad Nama-nama Lain Hari Akhirat di bawah!",
+            "Dah bersedia untuk memancing? Mari uji hafalan anda!",
+            "Pastikan anda ingat 5 urutan peringkat Hari Akhirat ya!"
         ];
-        
+
+        function speakMascotRandom() {
+            playSound('click');
+            const randomMsg = mascotMessages[Math.floor(Math.random() * mascotMessages.length)];
+            document.getElementById('mascotText').innerText = randomMsg;
+        }
+
+        /* -------------------------------------------------------------
+           3. SCROLL REVEAL LOGIC
+           ------------------------------------------------------------- */
+        function checkScrollReveal() {
+            const reveals = document.querySelectorAll('.reveal');
+            const windowHeight = window.innerHeight;
+            
+            reveals.forEach(el => {
+                const elementTop = el.getBoundingClientRect().top;
+                const elementVisible = 100;
+                
+                if (elementTop < windowHeight - elementVisible) {
+                    el.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', checkScrollReveal);
+        window.addEventListener('load', checkScrollReveal);
+
+        /* -------------------------------------------------------------
+           4. PERMAINAN MEMANCING (FISHING GAME LOGIC)
+           ------------------------------------------------------------- */
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        const container = document.getElementById('game-container');
-        
-        // UI Elements
-        const startScreen = document.getElementById('startScreen');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const hud = document.getElementById('hud');
-        const targetDisplay = document.getElementById('targetDisplay');
-        const stepDisplay = document.getElementById('stepDisplay');
-        const lifeDisplay = document.getElementById('lifeDisplay');
-        const centerMessage = document.getElementById('centerMessage');
-        const endIcon = document.getElementById('endIcon');
-        const endTitle = document.getElementById('endTitle');
-        const endDesc = document.getElementById('endDesc');
 
-        let gameLoopId;
-        let width, height;
-        let currentStep = 0;
+        // Data Peringkat Alam Akhirat
+        const stageData = [
+            { id: 1, text: "Kehancuran Alam" },
+            { id: 2, text: "Peristiwa Kebangkitan" },
+            { id: 3, text: "Padang Mahsyar" },
+            { id: 4, text: "Perhitungan Amalan" },
+            { id: 5, text: "Syurga atau Neraka" }
+        ];
+
+        let gameActive = false;
+        let currentStageIndex = 0; // Target semasa 0-4
+        let score = 0;
         let lives = 3;
-        let gameState = 'menu'; // menu, playing, gameover
         let fishes = [];
         let particles = [];
-        
-        const emojis = ['🐟', '🐠', '🐡'];
+        let gameAnimFrame;
 
-        // Konfigurasi Pancing
+        // Objek Pancing (Mata Kail)
         const hook = {
-            originX: 0, originY: 0, x: 0, y: 0,
-            length: 40, angle: 0, state: 'swinging', speed: 8,
-            catch: null
+            x: 0,
+            y: 0,
+            originX: 0,
+            originY: 50,
+            angle: 0,
+            length: 40,
+            speed: 12,
+            state: 'swinging', // swinging, dropping, retrieving
+            caughtFish: null
         };
-        const oceanLevel = 0.35;
 
-        function resize() {
-            if(!container) return;
-            width = container.clientWidth;
-            height = container.clientHeight;
-            canvas.width = width;
-            canvas.height = height;
-            hook.originX = width / 2;
-            hook.originY = height * 0.15;
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            hook.originX = canvas.width / 2;
         }
-        window.addEventListener('resize', resize);
 
+        window.addEventListener('resize', resizeCanvas);
+
+        // Kelas Ikan
         class Fish {
-            constructor(stageIndex, text) {
-                this.stageIndex = stageIndex;
-                this.text = text;
-                this.emoji = emojis[Math.floor(Math.random() * emojis.length)];
+            constructor(stageInfo) {
+                this.stageInfo = stageInfo; // { id, text }
                 this.direction = Math.random() > 0.5 ? 1 : -1;
-                this.x = this.direction === 1 ? -150 : width + 150;
-                
-                const minWaterY = height * oceanLevel + 60;
-                const maxWaterY = height - 40;
-                this.y = minWaterY + Math.random() * (maxWaterY - minWaterY);
-                
-                this.speed = (1.5 + Math.random() * 1.5) * this.direction;
-                this.size = 35;
-                
-                this.waveOffset = Math.random() * Math.PI * 2;
+                this.x = this.direction === 1 ? -120 : canvas.width + 120;
+                this.y = 120 + Math.random() * (canvas.height - 180);
+                this.speed = (1.2 + Math.random() * 1.5) * this.direction;
+                this.emoji = ['🐟', '🐠', '🐡'][Math.floor(Math.random() * 3)];
+                this.width = 110;
+                this.height = 45;
             }
 
             update() {
                 this.x += this.speed;
-                this.y += Math.sin(Date.now() * 0.003 + this.waveOffset) * 0.8;
             }
 
-            draw(ctx) {
+            draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 
-                // Draw Label
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-                ctx.beginPath();
-                ctx.roundRect(-65, -35, 130, 20, 10);
-                ctx.fill();
-                ctx.strokeStyle = '#10b981';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                ctx.fillStyle = '#064e3b';
-                ctx.font = 'bold 10px Inter, sans-serif';
+                // Lukis Badan Ikan (Emoji)
+                ctx.font = '28px Arial';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(this.text, 0, -25);
+                
+                if (this.direction === -1) {
+                    ctx.scale(-1, 1);
+                    ctx.fillText(this.emoji, 35, 0);
+                    ctx.scale(-1, 1);
+                } else {
+                    ctx.fillText(this.emoji, -35, 0);
+                }
 
-                // Draw Emoji
-                if (this.direction === -1) ctx.scale(-1, 1);
-                ctx.font = `${this.size}px Arial`;
-                ctx.fillText(this.emoji, 0, 10);
+                // Label Teks Peringkat pada Ikan
+                ctx.fillStyle = '#ffffff';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 4;
+                ctx.beginPath();
+                ctx.roundRect(-45, -16, 90, 32, 8);
+                ctx.fillStyle = this.stageInfo.id === (currentStageIndex + 1) ? '#059669' : '#0284c7';
+                ctx.fill();
+                ctx.border = '2px solid white';
+                ctx.stroke();
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 11px Fredoka, sans-serif';
+                ctx.fillText(this.stageInfo.text, 0, 1);
                 
                 ctx.restore();
             }
         }
 
         function spawnFishes() {
-            // Pastikan sentiasa ada wakil setiap peringkat dalam laut
-            let missingStages = [0, 1, 2, 3, 4].filter(i => !fishes.some(f => f.stageIndex === i));
-            
-            // Randomly spawn missing stages
-            if (missingStages.length > 0 && Math.random() < 0.03) {
-                let stageToSpawn = missingStages[Math.floor(Math.random() * missingStages.length)];
-                fishes.push(new Fish(stageToSpawn, urutanSebenar[stageToSpawn]));
-            }
-            // Kadang-kadang tambah ikan extra untuk peringkat semasa (supaya lebih senang jumpa)
-            else if (fishes.length < 8 && Math.random() < 0.02) {
-                fishes.push(new Fish(currentStep, urutanSebenar[currentStep]));
+            if (fishes.length < 4 && Math.random() < 0.03) {
+                // Pilih tajuk peringkat rawak (utamakan target semasa)
+                let selectedStage;
+                if (Math.random() < 0.5) {
+                    selectedStage = stageData[currentStageIndex];
+                } else {
+                    selectedStage = stageData[Math.floor(Math.random() * stageData.length)];
+                }
+                fishes.push(new Fish(selectedStage));
             }
         }
 
-        function handleInput(e) {
-            if (gameState !== 'playing') return;
-            if (e.type === 'touchstart') e.preventDefault(); 
+        function startFishingGame() {
+            initAudio();
+            playSound('click');
+
+            resizeCanvas();
+            gameActive = true;
+            currentStageIndex = 0;
+            score = 0;
+            lives = 3;
+            fishes = [];
+            particles = [];
+            hook.state = 'swinging';
+            hook.caughtFish = null;
+
+            document.getElementById('gameStartOverlay').classList.add('hidden');
+            document.getElementById('gameOverOverlay').classList.add('hidden');
+            updateGameUI();
+
+            if (gameAnimFrame) cancelAnimationFrame(gameAnimFrame);
+            gameLoop();
+        }
+
+        function updateGameUI() {
+            document.getElementById('targetText').innerText = `Langkah ${currentStageIndex + 1}: ${stageData[currentStageIndex].text}`;
+            document.getElementById('gameScore').innerText = score;
+            document.getElementById('gameLives').innerText = '❤️'.repeat(lives);
+        }
+
+        // Input Tangkapan (Klik / Touch Canvas)
+        function handleCanvasClick(e) {
+            if (!gameActive) return;
             if (hook.state === 'swinging') {
                 hook.state = 'dropping';
-            }
-        }
-        
-        container.addEventListener('mousedown', handleInput);
-        container.addEventListener('touchstart', handleInput, {passive: false});
-
-        function checkCollision() {
-            for (let i = 0; i < fishes.length; i++) {
-                const f = fishes[i];
-                const dx = hook.x - f.x;
-                const dy = hook.y - f.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-
-                // Hitbox radius
-                if (distance < 30) {
-                    hook.catch = f;
-                    fishes.splice(i, 1);
-                    hook.state = 'retrieving';
-                    createSplashes(hook.x, hook.y);
-                    break;
-                }
+                playSound('splash');
             }
         }
 
-        function createSplashes(x, y) {
-            for(let i=0; i<8; i++) {
-                particles.push({
-                    x: x, y: y,
-                    vx: (Math.random() - 0.5) * 5,
-                    vy: (Math.random() - 1) * 5,
-                    life: 1,
-                    type: 'splash'
-                });
-            }
-        }
+        canvas.addEventListener('mousedown', handleCanvasClick);
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleCanvasClick(e);
+        }, { passive: false });
 
-        function showMessage(msg, isSuccess) {
-            centerMessage.innerHTML = msg;
-            centerMessage.className = `absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 glass-panel px-6 py-3 rounded-2xl text-xl sm:text-2xl font-bold text-center transition-all duration-300 shadow-lg ${isSuccess ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`;
-            centerMessage.classList.remove('hidden');
-            
-            setTimeout(() => {
-                centerMessage.classList.add('hidden');
-            }, 2000);
-        }
+        function updateGameLogic() {
+            if (!gameActive) return;
 
-        function update() {
-            if (gameState !== 'playing') return;
-
-            // Pancing Logic
+            // 1. Pergerakan Kail Pancing
             if (hook.state === 'swinging') {
-                hook.angle = Math.sin(Date.now() * 0.0025) * (Math.PI / 3.5);
+                hook.angle = Math.sin(Date.now() * 0.003) * (Math.PI / 3.5);
                 hook.length = 40;
-            } 
-            else if (hook.state === 'dropping') {
+            } else if (hook.state === 'dropping') {
                 hook.length += hook.speed;
-                if (hook.originY + Math.cos(hook.angle) * hook.length > height) {
+                // Jika cecah dasar
+                if (hook.originY + Math.cos(hook.angle) * hook.length >= canvas.height - 20) {
                     hook.state = 'retrieving';
                 }
-                checkCollision();
-            } 
-            else if (hook.state === 'retrieving') {
+
+                // Semak Pelanggaran Ikan
+                for (let i = fishes.length - 1; i >= 0; i--) {
+                    let f = fishes[i];
+                    let dx = hook.x - f.x;
+                    let dy = hook.y - f.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 40) {
+                        hook.caughtFish = f;
+                        fishes.splice(i, 1);
+                        hook.state = 'retrieving';
+                        playSound('splash');
+                        break;
+                    }
+                }
+            } else if (hook.state === 'retrieving') {
                 hook.length -= hook.speed;
                 if (hook.length <= 40) {
                     hook.state = 'swinging';
-                    if (hook.catch) {
-                        // Check if correct fish caught
-                        if (hook.catch.stageIndex === currentStep) {
-                            currentStep++;
-                            showMessage("Betul! 🎉", true);
-                            if (currentStep >= urutanSebenar.length) {
-                                setTimeout(endGameWin, 1000);
+                    
+                    // Semak Tangkapan
+                    if (hook.caughtFish) {
+                        const caughtId = hook.caughtFish.stageInfo.id;
+                        const targetId = currentStageIndex + 1;
+
+                        if (caughtId === targetId) {
+                            // BETUL!
+                            playSound('success');
+                            score += 20;
+                            currentStageIndex++;
+
+                            if (currentStageIndex >= stageData.length) {
+                                // MENANG GAME!
+                                endGame(true);
                             } else {
-                                targetDisplay.innerText = urutanSebenar[currentStep];
-                                stepDisplay.innerText = currentStep + 1;
+                                updateGameUI();
+                                document.getElementById('mascotText').innerText = `Bagus! Betul urutan ke-${currentStageIndex}. Teruskan!`;
                             }
                         } else {
+                            // SALAH!
+                            playSound('error');
                             lives--;
-                            lifeDisplay.innerText = lives;
-                            showMessage("Salah urutan! ❌", false);
+                            updateGameUI();
+                            
+                            // Visual shake canvas
+                            canvas.classList.add('animate-shake');
+                            setTimeout(() => canvas.classList.remove('animate-shake'), 400);
+
                             if (lives <= 0) {
-                                setTimeout(endGameLose, 1000);
+                                endGame(false);
+                            } else {
+                                document.getElementById('mascotText').innerText = `Alamak, salah urutan! Cuba cari ${stageData[currentStageIndex].text}.`;
                             }
                         }
-                        hook.catch = null;
+                        hook.caughtFish = null;
                     }
                 }
             }
 
+            // Pengiraan Posisi Hujung Kail
             hook.x = hook.originX + Math.sin(hook.angle) * hook.length;
             hook.y = hook.originY + Math.cos(hook.angle) * hook.length;
 
+            // 2. Kemaskini Ikan
             spawnFishes();
             for (let i = fishes.length - 1; i >= 0; i--) {
                 fishes[i].update();
-                if (fishes[i].x < -200 || fishes[i].x > width + 200) {
+                if (fishes[i].x < -150 || fishes[i].x > canvas.width + 150) {
                     fishes.splice(i, 1);
                 }
             }
-
-            for (let i = particles.length - 1; i >= 0; i--) {
-                let p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.2; 
-                p.life -= 0.05;
-                if (p.life <= 0) particles.splice(i, 1);
-            }
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, width, height);
-            
-            // Lukis Laut
-            const waterGradient = ctx.createLinearGradient(0, height * oceanLevel, 0, height);
-            waterGradient.addColorStop(0, '#0ea5e9'); // Permukaan
-            waterGradient.addColorStop(1, '#0c4a6e'); // Dasar
-            ctx.fillStyle = waterGradient;
-            ctx.fillRect(0, height * oceanLevel, width, height * (1 - oceanLevel));
+        function drawGameGraphics() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Ombak
+            // 1. Air & Latar Belakang (Air Gradient)
+            const waterGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            waterGrad.addColorStop(0, '#38bdf8');
+            waterGrad.addColorStop(0.3, '#0284c7');
+            waterGrad.addColorStop(1, '#0369a1');
+            ctx.fillStyle = waterGrad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Ombak permukaan
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
             ctx.beginPath();
-            ctx.moveTo(0, height * oceanLevel);
-            for(let x = 0; x <= width; x += 20) {
-                const yOffset = Math.sin(Date.now() * 0.002 + x * 0.05) * 4;
-                ctx.lineTo(x, height * oceanLevel + yOffset);
+            ctx.moveTo(0, 50);
+            for (let x = 0; x <= canvas.width; x += 30) {
+                ctx.lineTo(x, 50 + Math.sin(Date.now() * 0.003 + x * 0.05) * 4);
             }
-            ctx.lineTo(width, height);
-            ctx.lineTo(0, height);
-            ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+            ctx.lineTo(canvas.width, 0);
+            ctx.lineTo(0, 0);
             ctx.fill();
 
-            // Pemancing & Perahu
-            ctx.font = '50px Arial';
+            // 2. Perahu Sampan & Ustaz
+            ctx.font = '45px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            const boatY = Math.sin(Date.now() * 0.003) * 3;
-            ctx.fillText('🛶', hook.originX, hook.originY + boatY + 20);
-            ctx.font = '35px Arial';
-            ctx.fillText('👨‍🌾', hook.originX, hook.originY + boatY - 5);
+            ctx.fillText('🛶', hook.originX, hook.originY + 15);
+            ctx.font = '30px Arial';
+            ctx.fillText('👳‍♂️', hook.originX, hook.originY - 10);
 
-            // Tali
+            // 3. Tali Pancing
             ctx.beginPath();
-            ctx.moveTo(hook.originX, hook.originY + boatY);
+            ctx.moveTo(hook.originX, hook.originY + 5);
             ctx.lineTo(hook.x, hook.y);
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
             ctx.stroke();
 
-            // Mata Kail & Tangkapan
+            // 4. Mata Kail & Tangkapan
             ctx.save();
             ctx.translate(hook.x, hook.y);
-            ctx.rotate(hook.angle * -0.5);
+            ctx.rotate(-hook.angle * 0.5);
             ctx.font = '20px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('🪝', 0, 8);
-            if (hook.catch) {
-                ctx.font = '30px Arial';
-                ctx.fillText(hook.catch.emoji, 0, 20);
+
+            if (hook.caughtFish) {
+                ctx.font = '24px Arial';
+                ctx.fillText(hook.caughtFish.emoji, 0, 25);
             }
             ctx.restore();
 
-            // Ikan
-            for (let f of fishes) f.draw(ctx);
-
-            // Particles
-            for (let p of particles) {
-                ctx.save();
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
+            // 5. Lukis Semua Ikan
+            for (let f of fishes) {
+                f.draw();
             }
         }
 
         function gameLoop() {
-            update();
-            draw();
-            gameLoopId = requestAnimationFrame(gameLoop);
+            if (!gameActive) return;
+            updateGameLogic();
+            drawGameGraphics();
+            gameAnimFrame = requestAnimationFrame(gameLoop);
         }
 
-        window.startGame = function() {
-            currentStep = 0;
-            lives = 3;
-            fishes = [];
-            hook.state = 'swinging';
-            hook.catch = null;
-            gameState = 'playing';
+        function endGame(isWin) {
+            gameActive = false;
+            const overlay = document.getElementById('gameOverOverlay');
+            const icon = document.getElementById('gameResultIcon');
+            const title = document.getElementById('gameResultTitle');
+            const desc = document.getElementById('gameResultDesc');
 
-            targetDisplay.innerText = urutanSebenar[currentStep];
-            stepDisplay.innerText = currentStep + 1;
-            lifeDisplay.innerText = lives;
-            
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-            gameOverScreen.classList.remove('flex');
-            hud.classList.remove('hidden');
+            overlay.classList.remove('hidden');
 
-            resize();
-            if (!gameLoopId) gameLoop();
-        };
-
-        function endGameWin() {
-            gameState = 'gameover';
-            hud.classList.add('hidden');
-            gameOverScreen.classList.remove('hidden');
-            gameOverScreen.classList.add('flex');
-            endIcon.innerText = '🏆';
-            endTitle.innerText = 'Tahniah!';
-            endTitle.classList.replace('text-red-700', 'text-emerald-800');
-            endDesc.innerText = 'Anda telah berjaya menyusun semua peringkat dengan betul.';
+            if (isWin) {
+                playSound('success');
+                icon.innerText = '🏆';
+                title.innerText = 'TAHNIAH! ANDA HEBAT!';
+                desc.innerText = `Anda berjaya menyusun kesemua 5 Peringkat Alam Akhirat mengikut urutan yang tepat dengan skor ${score}!`;
+                document.getElementById('mascotText').innerText = "Alhamdulillah! Anda telah mencapai objektif pembelajaran hari ini!";
+            } else {
+                playSound('error');
+                icon.innerText = '😅';
+                title.innerText = 'CUBA LAGI!';
+                desc.innerText = 'Nyawa anda telah habis. Sila ulang baca nota peringkat di atas dan cuba lagi ya!';
+                document.getElementById('mascotText').innerText = "Jangan putus asa, mari baca semula nota di atas dan cuba lagi!";
+            }
         }
 
-        function endGameLose() {
-            gameState = 'gameover';
-            hud.classList.add('hidden');
-            gameOverScreen.classList.remove('hidden');
-            gameOverScreen.classList.add('flex');
-            endIcon.innerText = '💔';
-            endTitle.innerText = 'Permainan Tamat';
-            endTitle.classList.replace('text-emerald-800', 'text-red-700');
-            endDesc.innerText = 'Anda kehabisan nyawa! Cuba lagi untuk menghafal urutan peringkat akhirat.';
-        }
-
-        // Init
-        setTimeout(() => {
-            resize();
-            draw(); // Draw first frame
-        }, 100);
+        // Render awal bila load
+        window.addEventListener('load', () => {
+            resizeCanvas();
+            drawGameGraphics();
+        });
     </script>
 </body>
 </html>
